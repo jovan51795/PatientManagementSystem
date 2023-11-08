@@ -1,7 +1,5 @@
 package com.pms.config;
 
-import com.pms.services.CustomAuthenticationSuccessHandler;
-import com.pms.services.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,11 +25,6 @@ public class SecurityConfiguration {
 
     private final LogoutHandler logoutHandler;
 
-
-    private final CustomOAuth2UserService customOAuth2UserService;
-
-    private final CustomAuthenticationSuccessHandler oauthSucccessHandler;
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.cors().and()
@@ -52,12 +45,8 @@ public class SecurityConfiguration {
                 .logoutUrl("/api/v1/auth/logout")
                 .addLogoutHandler(logoutHandler)
                 .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext())
-                .and()
-                .oauth2Login()
-                .userInfoEndpoint().userService(customOAuth2UserService) // you can remove this line
-                .and()
-                .successHandler(oauthSucccessHandler).defaultSuccessUrl("http://localhost:3000/user")
-        ;
+
+  ;
 
         return http.build();
     }
