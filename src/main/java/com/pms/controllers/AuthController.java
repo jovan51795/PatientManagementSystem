@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/auth")
-
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -21,7 +20,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request) {
-
+        System.out.println(request.toString());
         return ResponseEntity.ok(service.register(request));
 
     }
@@ -30,7 +29,4 @@ public class AuthController {
     public ResponseEntity<AuthenticationResponse> register(@RequestBody AuthenticateRequest request) {
         return ResponseEntity.ok(service.authenticate(request));
     }
-
-
-
 }

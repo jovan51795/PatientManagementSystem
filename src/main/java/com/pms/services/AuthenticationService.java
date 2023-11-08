@@ -15,6 +15,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
@@ -30,6 +32,11 @@ public class AuthenticationService {
     private final TokenRepository tokenRepo;
 
     public AuthenticationResponse register(RegisterRequest request) {
+
+        Optional<User> userRecord = userRepo.findByEmail(request.getEmail());
+        if(userRecord.isPresent()) {
+            throw new RuntimeException("email already exist");
+        }
         var user = User.builder()
                 .firstname(request.getFirstname())
                 .lastname(request.getLastname())
