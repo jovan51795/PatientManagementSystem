@@ -8,4 +8,6 @@ public class Constants {
     public static final String UNAUTHORIZED = "Unauthorized access";
     public static final String SAVE_SUCCESSFUL = "Save Successfully";
     public static final String EXCEPTION_OCCURRED = "Exception occurred";
+    public static final String DELETE_MSG = "Record has been deleted";
+    public static final String UPDATE_MSG = "Record has been updated";
 }

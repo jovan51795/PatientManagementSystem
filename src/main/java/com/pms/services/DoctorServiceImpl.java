@@ -9,10 +9,10 @@ import com.pms.response.ResponseObject;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
-import static com.pms.constants.Constants.SAVE_SUCCESSFUL;
-import static com.pms.constants.Constants.SUCCESS_STATUS;
+import static com.pms.constants.Constants.*;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +31,52 @@ public class DoctorServiceImpl implements IDoctorService {
             throw new RuntimeException(e );
         }catch (Exception e) {
             throw new RuntimeException(e );
+        }
+    }
+
+    @Override
+    public ResponseObject getAllDoctor() {
+        try {
+            Optional<List<Doctor>> doctors = doctorRepo.findAllActive();
+            return new ResponseObject(SUCCESS_STATUS, null, doctors.get());
+        }catch (Exception e) {
+            e.printStackTrace();
+            throw  new RuntimeException(e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseObject delete(String id) {
+        try {
+            Optional<Doctor> doctor = doctorRepo.findById(id);
+            if(doctor.isEmpty()) {
+                return new ResponseObject(ERROR_STATUS,USER_NOT_FOUND_MSG,null );
+            }
+
+            doctor.get().setActive(false);
+            doctorRepo.save(doctor.get());
+            return new ResponseObject(SUCCESS_STATUS, DELETE_MSG, null);
+        }catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseObject update(DoctorDto doctorDto) {
+        try {
+            Optional<Doctor> doctor = doctorRepo.findById(doctorDto.id());
+            if(doctor.isEmpty()) {
+                return new ResponseObject(ERROR_STATUS,USER_NOT_FOUND_MSG,null );
+            }
+            doctor.get().setLast_name(doctorDto.first_name());
+            doctor.get().setLast_name(doctorDto.last_name());
+            doctor.get().setSpecialization(doctorDto.specialization());
+            doctorRepo.save(doctor.get());
+            return new ResponseObject(SUCCESS_STATUS,UPDATE_MSG, null );
+        }catch (Exception e) {
+            e.printStackTrace();
+            throw  new RuntimeException(e.getMessage());
         }
     }
 }

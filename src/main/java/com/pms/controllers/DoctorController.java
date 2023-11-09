@@ -4,10 +4,7 @@ import com.pms.dto.DoctorDto;
 import com.pms.response.ResponseObject;
 import com.pms.services.IDoctorService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -17,5 +14,19 @@ public class DoctorController {
     @PostMapping()
     public ResponseObject save(@RequestBody DoctorDto doctorDto) {
         return  doctorService.save(doctorDto);
+    }
+
+    @GetMapping()
+    public ResponseObject getAllDoctors() {
+        return doctorService.getAllDoctor();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseObject delete(@PathVariable("id") String id) {
+        return doctorService.delete(id);
+    }
+    @PatchMapping
+    public ResponseObject update(@RequestBody DoctorDto doctorDto) {
+        return doctorService.update(doctorDto);
     }
 }
