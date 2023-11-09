@@ -24,6 +24,7 @@ public class Doctor {
 
     private String first_name;
     private String last_name;
+    private String fullname;
     private String specialization;
     private Boolean active = true;
 }

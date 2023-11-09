@@ -25,6 +25,7 @@ public class DoctorServiceImpl implements IDoctorService {
         try {
             String doctorStr = mapper.writeValueAsString(doctorDto);
             Doctor doctor = mapper.readValue(doctorStr, Doctor.class);
+            doctor.setFullname(doctorDto.first_name() + " " + doctorDto.last_name());
             doctorRepo.save(doctor);
             return new ResponseObject(SUCCESS_STATUS, SAVE_SUCCESSFUL, null);
         } catch (JsonProcessingException e) {

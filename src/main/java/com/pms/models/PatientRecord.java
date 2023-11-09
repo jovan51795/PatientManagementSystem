@@ -18,13 +18,17 @@ public class PatientRecord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Byte[] file;
+    private String prescriptions;
+
+    @Column(length = 10000000)
+    private String notes;
 
     @Column(length = 10000000)
     private String diagnose;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "doctor_id")
-    private Doctor doctor;
+    private Doctor physician;
 
     @ManyToOne
     @JoinColumn(name = "patient")
