@@ -34,6 +34,7 @@ public class Patient {
     private String gender;
     private String contact;
     private String emergency_contact;
+    private Boolean active = true;
 
     @Enumerated(EnumType.STRING)
     private PatientStatus status;
