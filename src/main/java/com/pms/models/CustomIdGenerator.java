@@ -13,7 +13,7 @@ public class CustomIdGenerator implements IdentifierGenerator {
     @Override
     public Serializable generate(SharedSessionContractImplementor session, Object object) throws HibernateException {
         LocalDateTime now = LocalDateTime.now();
-        String timestamp = now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
+        String timestamp = now.format(DateTimeFormatter.ofPattern("yyMM-ddHH-mmss"));
 
         Random random = new Random();
         int randomPart = random.nextInt(100);
