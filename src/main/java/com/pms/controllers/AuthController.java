@@ -3,6 +3,7 @@ package com.pms.controllers;
 import com.pms.request.AuthenticateRequest;
 import com.pms.request.RegisterRequest;
 import com.pms.response.AuthenticationResponse;
+import com.pms.response.ResponseObject;
 import com.pms.services.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,9 +20,9 @@ public class AuthController {
     private final AuthenticationService service;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request) {
-        System.out.println(request.toString());
-        return ResponseEntity.ok(service.register(request));
+    public ResponseObject register(@RequestBody RegisterRequest request) {
+
+        return service.register(request);
 
     }
 

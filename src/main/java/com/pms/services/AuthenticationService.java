@@ -7,6 +7,7 @@ import com.pms.repo.UserRepository;
 import com.pms.request.AuthenticateRequest;
 import com.pms.request.RegisterRequest;
 import com.pms.response.AuthenticationResponse;
+import com.pms.response.ResponseObject;
 import com.pms.token.Token;
 import com.pms.token.TokenType;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+
+import static com.pms.constants.Constants.ERROR_STATUS;
+import static com.pms.constants.Constants.SUCCESS_STATUS;
 
 @Service
 @RequiredArgsConstructor
@@ -31,11 +35,11 @@ public class AuthenticationService {
 
     private final TokenRepository tokenRepo;
 
-    public AuthenticationResponse register(RegisterRequest request) {
+    public ResponseObject register(RegisterRequest request) {
 
         Optional<User> userRecord = userRepo.findByEmail(request.getEmail());
         if(userRecord.isPresent()) {
-            throw new RuntimeException("email already exist");
+            return new ResponseObject(ERROR_STATUS, "Email already exist", null);
         }
         var user = User.builder()
                 .firstname(request.getFirstname())
@@ -51,7 +55,8 @@ public class AuthenticationService {
 
         saveUserToken(savedUser, token);
 
-        return AuthenticationResponse.builder().token(token).build();
+        var tokenData =  AuthenticationResponse.builder().token(token).build();
+        return new ResponseObject(SUCCESS_STATUS, "You are successfully registered", tokenData);
     }
 
     public AuthenticationResponse authenticate(AuthenticateRequest request) {
