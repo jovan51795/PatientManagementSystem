@@ -10,4 +10,6 @@ public interface IPatientService {
     public ResponseObject delete(String id);
     public ResponseObject update(Patient patient);
     public ResponseObject getAllPatients();
+    public ResponseObject getDetails(String id);
+
 }

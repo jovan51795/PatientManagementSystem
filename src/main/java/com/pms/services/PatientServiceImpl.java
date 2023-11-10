@@ -59,7 +59,7 @@ public class PatientServiceImpl implements IPatientService{
             patient.get().setEmergency_contact(p.getEmergency_contact());
             patient.get().setPatientRecords(p.getPatientRecords());
             patientRepo.save(patient.get());
-            return new ResponseObject(SUCCESS_STATUS, DELETE_MSG, null);
+            return new ResponseObject(SUCCESS_STATUS, UPDATE_MSG, null);
         }catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage());
@@ -69,10 +69,25 @@ public class PatientServiceImpl implements IPatientService{
     @Override
     public ResponseObject getAllPatients() {
         try {
-            return new ResponseObject(SUCCESS_STATUS, null, patientRepo.findAll());
+            return new ResponseObject(SUCCESS_STATUS, null, patientRepo.findActivePatient().get());
         }catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseObject getDetails(String id) {
+        try {
+            Optional<Patient> patient = patientRepo.findById(id);
+            if(patient.isEmpty()) {
+                return new ResponseObject(ERROR_STATUS, PATIENT_NOT_FOUND_MSG, null);
+            }
+
+            return new ResponseObject(SUCCESS_STATUS, null, patient.get());
+        }catch (Exception e) {
+            e.printStackTrace();
+            throw  new RuntimeException(e.getMessage());
         }
     }
 }

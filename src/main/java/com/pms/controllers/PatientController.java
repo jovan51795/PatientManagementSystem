@@ -31,4 +31,9 @@ public class PatientController {
     public ResponseObject getAllPatients() {
         return patientService.getAllPatients();
     }
+
+    @GetMapping("/{id}")
+    public ResponseObject getDetails(@PathVariable("id") String id) {
+        return patientService.getDetails(id);
+    }
 }
