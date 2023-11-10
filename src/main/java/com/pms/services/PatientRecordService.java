@@ -1,5 +1,6 @@
 package com.pms.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pms.models.Patient;
 import com.pms.models.PatientRecord;
 import com.pms.repo.PatientRecordRepo;
@@ -17,6 +18,7 @@ import static com.pms.constants.Constants.*;
 public class PatientRecordService implements IPatientRecordService {
     private final PatientRecordRepo recordRepo;
     private final PatientRepo patientRepo;
+    private final ObjectMapper mapper;
 
     @Override
     public ResponseObject addPatientRecord(String id, PatientRecord record) {
@@ -26,7 +28,14 @@ public class PatientRecordService implements IPatientRecordService {
                 return new ResponseObject(ERROR_STATUS, PATIENT_NOT_FOUND_MSG, null);
             }
 
-            patient.get().getPatientRecords().add(record);
+            PatientRecord newPatientRecord = new PatientRecord();
+            newPatientRecord.setFile(record.getFile());
+            newPatientRecord.setDiagnose(record.getDiagnose());
+            newPatientRecord.setPrescriptions(record.getPrescriptions());
+            newPatientRecord.setNotes(record.getNotes());
+            newPatientRecord.setPhysician(record.getPhysician());
+            patient.get().getPatientRecords().add(newPatientRecord);
+            System.out.println(mapper.writeValueAsString(patient.get()));
             patientRepo.save(patient.get());
             return new ResponseObject(SUCCESS_STATUS, "New record has been added", null);
 

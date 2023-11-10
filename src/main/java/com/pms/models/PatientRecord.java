@@ -26,7 +26,7 @@ public class PatientRecord {
     @Column(length = 10000000)
     private String diagnose;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "doctor_id")
     private Doctor physician;
 

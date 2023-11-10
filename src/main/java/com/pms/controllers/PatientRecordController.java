@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 public class PatientRecordController {
     private final PatientRecordService recordService;
 
-    @PatchMapping()
+    @PatchMapping("/{id}")
     public ResponseObject addPatientRecord(@PathVariable("id") String id, @RequestBody PatientRecord record) {
         return recordService.addPatientRecord(id, record);
     }
