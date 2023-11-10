@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 
 @Entity
 @Data
@@ -20,7 +21,7 @@ public class PatientRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Byte[] file;
+
     private String prescriptions;
     @CreationTimestamp
     private ZonedDateTime date;
@@ -39,4 +40,8 @@ public class PatientRecord {
     @JoinColumn(name = "patient")
     @JsonIgnore
     private Patient patient;
+
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinColumn(name="patient_id")
+    private List<PatientFiles> file;
 }

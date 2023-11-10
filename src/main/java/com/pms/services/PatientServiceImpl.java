@@ -1,12 +1,21 @@
 package com.pms.services;
 
 import com.pms.models.Patient;
+import com.pms.models.PatientFiles;
 import com.pms.repo.PatientRepo;
 import com.pms.response.ResponseObject;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.sql.rowset.serial.SerialBlob;
+import java.io.ByteArrayOutputStream;
+import java.sql.Blob;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.zip.Deflater;
+import java.util.zip.Inflater;
 
 import static com.pms.constants.Constants.*;
 
@@ -14,10 +23,21 @@ import static com.pms.constants.Constants.*;
 @RequiredArgsConstructor
 public class PatientServiceImpl implements IPatientService{
     private final PatientRepo patientRepo;
+
     @Override
-    public ResponseObject save(Patient patient) {
+    public ResponseObject save(Patient patient, List<MultipartFile> file) {
         try {
+            List<PatientFiles> files = new ArrayList<>();
+
+            for (var fileData : file) {
+                PatientFiles patientFile = new PatientFiles();
+                patientFile.setFilename(fileData.getOriginalFilename());
+                patientFile.setFile(compressImage(fileData.getBytes()));
+                files.add(patientFile);
+            }
+            patient.getPatientRecords().get(0).setFile(files);
             patientRepo.save(patient);
+
             return new ResponseObject(SUCCESS_STATUS, SAVE_SUCCESSFUL, null);
         }catch (Exception e) {
             e.printStackTrace();
@@ -69,7 +89,15 @@ public class PatientServiceImpl implements IPatientService{
     @Override
     public ResponseObject getAllPatients() {
         try {
-            return new ResponseObject(SUCCESS_STATUS, null, patientRepo.findActivePatient().get());
+            Optional<List<Patient>> patient = patientRepo.findActivePatient();
+            patient.get().forEach( p -> {
+                p.getPatientRecords().forEach( f-> {
+                    f.getFile().forEach(file -> {
+                        file.setFile(decompressImage(file.getFile()));
+                    });
+                });
+            });
+            return new ResponseObject(SUCCESS_STATUS, null, patient.get());
         }catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage());
@@ -83,6 +111,12 @@ public class PatientServiceImpl implements IPatientService{
             if(patient.isEmpty()) {
                 return new ResponseObject(ERROR_STATUS, PATIENT_NOT_FOUND_MSG, null);
             }
+            patient.get().getPatientRecords().forEach( p-> {
+                p.getFile().forEach(f -> {
+                    var fileDe = decompressImage(f.getFile());
+                    f.setFile(fileDe);
+                });
+            });
 
             return new ResponseObject(SUCCESS_STATUS, null, patient.get());
         }catch (Exception e) {
@@ -90,4 +124,41 @@ public class PatientServiceImpl implements IPatientService{
             throw  new RuntimeException(e.getMessage());
         }
     }
+
+    private byte[] decompressImage(byte[] data) {
+        Inflater inflater = new Inflater();
+        inflater.setInput(data);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream(data.length);
+        byte[] tmp = new byte[4*1024];
+        try {
+            while (!inflater.finished()) {
+                int count = inflater.inflate(tmp);
+                outputStream.write(tmp, 0, count);
+            }
+            outputStream.close();
+        } catch (Exception exception) {
+        }
+        return outputStream.toByteArray();
+    }
+
+    private byte[] compressImage(byte[] data) {
+
+        Deflater deflater = new Deflater();
+        deflater.setLevel(Deflater.BEST_COMPRESSION);
+        deflater.setInput(data);
+        deflater.finish();
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream(data.length);
+        byte[] tmp = new byte[4*1024];
+        while (!deflater.finished()) {
+            int size = deflater.deflate(tmp);
+            outputStream.write(tmp, 0, size);
+        }
+        try {
+            outputStream.close();
+        } catch (Exception e) {
+        }
+        return outputStream.toByteArray();
+    }
+
 }
