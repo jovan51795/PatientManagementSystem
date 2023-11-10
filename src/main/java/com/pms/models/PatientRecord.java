@@ -6,6 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.ZonedDateTime;
 
 @Entity
 @Data
@@ -19,6 +22,8 @@ public class PatientRecord {
     private Long id;
     private Byte[] file;
     private String prescriptions;
+    @CreationTimestamp
+    private ZonedDateTime date;
 
     @Column(length = 10000000)
     private String notes;
