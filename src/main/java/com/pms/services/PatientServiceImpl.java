@@ -192,6 +192,8 @@ public class PatientServiceImpl implements IPatientService{
                 });
             });
 
+            decryptPatient(patient.get());
+
             return new ResponseObject(SUCCESS_STATUS, null, patient.get());
         }catch (Exception e) {
             e.printStackTrace();
