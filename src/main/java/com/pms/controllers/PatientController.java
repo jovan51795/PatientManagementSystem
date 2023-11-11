@@ -28,6 +28,11 @@ public class PatientController {
         return patientService.save(patient, file);
     }
 
+    @PostMapping(value = "/no-file")
+    public ResponseObject save(@RequestBody Patient patient) throws JsonProcessingException {
+        return patientService.save(patient);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseObject delete(@PathVariable("id") String id) {
         return patientService.delete(id);

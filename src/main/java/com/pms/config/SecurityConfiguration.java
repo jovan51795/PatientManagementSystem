@@ -60,7 +60,7 @@ public class SecurityConfiguration {
                         .allowedOrigins("http://localhost:4200")
                         .allowedMethods("*")
                         .allowedHeaders("*")
-                        .allowCredentials(true);
+                        .allowCredentials(true).maxAge(360);
             }
         };
     }

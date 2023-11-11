@@ -6,10 +6,12 @@ import com.pms.models.PatientRecord;
 import com.pms.repo.PatientRecordRepo;
 import com.pms.repo.PatientRepo;
 import com.pms.response.ResponseObject;
+import com.pms.util.AESEncryption;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.crypto.SecretKey;
 import javax.sql.rowset.serial.SerialBlob;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -27,13 +29,56 @@ import static com.pms.constants.Constants.*;
 public class PatientServiceImpl implements IPatientService{
     private final PatientRepo patientRepo;
     private final PatientRecordRepo recordRepo;
+    private final SecretKey key;
 
     @Override
     public ResponseObject save(Patient patient, List<MultipartFile> file) {
         try {
             patient.getPatientRecords().get(0).setFile(setPatientFiles(file));
+            encryptPatient(patient);
             patientRepo.save(patient);
 
+            return new ResponseObject(SUCCESS_STATUS, SAVE_SUCCESSFUL, null);
+        }catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    private void encryptPatient(Patient patient) throws Exception {
+        patient.setFirst_name(encrypt(patient.getFirst_name()));
+        patient.setMiddle_name(encrypt(patient.getMiddle_name()));
+        patient.setLast_name(encrypt(patient.getLast_name()));
+        patient.setBirthday(encrypt(patient.getBirthday()));
+        patient.setGender(encrypt(patient.getGender()));
+        patient.setPlace_of_birth(encrypt(patient.getPlace_of_birth()));
+        patient.setContact(encrypt(patient.getContact()));
+        patient.setEmergency_contact(encrypt(patient.getEmergency_contact()));
+    }
+
+    private void decryptPatient(Patient patient) throws Exception {
+        patient.setFirst_name(decrypt(patient.getFirst_name()));
+        patient.setMiddle_name(decrypt(patient.getMiddle_name()));
+        patient.setLast_name(decrypt(patient.getLast_name()));
+        patient.setBirthday(decrypt(patient.getBirthday()));
+        patient.setGender(decrypt(patient.getGender()));
+        patient.setPlace_of_birth(decrypt(patient.getPlace_of_birth()));
+        patient.setContact(decrypt(patient.getContact()));
+        patient.setEmergency_contact(decrypt(patient.getEmergency_contact()));
+    }
+
+    private String encrypt(String value) throws Exception {
+        return AESEncryption.encrypt(value, key);
+    }
+
+    private String decrypt(String value) throws Exception {
+        return AESEncryption.decrypt(value, key);
+    }
+
+    public ResponseObject save(Patient patient) {
+        try {
+            encryptPatient(patient);
+            patientRepo.save(patient);
             return new ResponseObject(SUCCESS_STATUS, SAVE_SUCCESSFUL, null);
         }catch (Exception e) {
             e.printStackTrace();
@@ -49,6 +94,7 @@ public class PatientServiceImpl implements IPatientService{
                 return new ResponseObject(ERROR_STATUS, PATIENT_NOT_FOUND_MSG, null);
             }
             patient.get().setActive(false);
+
             patientRepo.save(patient.get());
             return new ResponseObject(SUCCESS_STATUS, DELETE_MSG, null);
         }catch (Exception e) {
@@ -73,14 +119,19 @@ public class PatientServiceImpl implements IPatientService{
             patient.get().setContact(p.getContact());
             patient.get().setStatus(p.getStatus());
             patient.get().setEmergency_contact(p.getEmergency_contact());
-            //patient.get().setPatientRecords(p.getPatientRecords());
-            //patient.get().getPatientRecords().get(0).setFile(setPatientFiles(file));
+            encryptPatient(patient.get());
             patientRepo.save(patient.get());
             PatientRecord patientRecord = p.getPatientRecords().get(0);
 
             if (file != null) {
-                patientRecord.setFile(setPatientFiles(file));
-                //setPatientFiles(patientRecord.getFile() ,file);
+                //patientRecord.setFile(setPatientFiles(file));
+                //patientRecord = patient.get()
+                patient.get().getPatientRecords().forEach( pt -> {
+                    if(pt.getId().equals(patientRecord.getId())) {
+                        patientRecord.setFile(pt.getFile());
+                    }
+                });
+                setPatientFiles(patientRecord.getFile() ,file);
             } else {
                 PatientRecord pRec = p.getPatientRecords().get(0);
                 patientRecord.setId(pRec.getId());
@@ -109,6 +160,11 @@ public class PatientServiceImpl implements IPatientService{
         try {
             Optional<List<Patient>> patient = patientRepo.findActivePatient();
             patient.get().forEach( p -> {
+                try {
+                    decryptPatient(p);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
                 p.getPatientRecords().forEach( f-> {
                     f.getFile().forEach(file -> {
                         file.setFile(decompressImage(file.getFile()));

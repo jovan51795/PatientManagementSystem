@@ -1,6 +1,7 @@
 package com.pms.config;
 
 import com.pms.repo.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,11 +16,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import lombok.RequiredArgsConstructor;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
+
 @Configuration
 @RequiredArgsConstructor
 public class ApplicationConfig {
 
     private final UserRepository userRepo;
+    @Value("${aes.secretKey}")
+    private String base64SecretKey;
 
     @Bean
     public UserDetailsService userDetailsService() {
@@ -52,6 +59,15 @@ public class ApplicationConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public SecretKey secretKey() throws Exception {
+        if (base64SecretKey == null || base64SecretKey.isEmpty()) {
+            throw new IllegalArgumentException("AES_SECRET_KEY is not set");
+        }
+        byte[] decodedKey = Base64.getDecoder().decode(base64SecretKey);
+        return new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
     }
 
 
