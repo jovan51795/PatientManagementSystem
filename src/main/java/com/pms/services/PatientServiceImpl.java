@@ -2,6 +2,7 @@ package com.pms.services;
 
 import com.pms.models.Patient;
 import com.pms.models.PatientFiles;
+import com.pms.repo.PatientRecordRepo;
 import com.pms.repo.PatientRepo;
 import com.pms.response.ResponseObject;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.sql.rowset.serial.SerialBlob;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,19 +25,12 @@ import static com.pms.constants.Constants.*;
 @RequiredArgsConstructor
 public class PatientServiceImpl implements IPatientService{
     private final PatientRepo patientRepo;
+    private final PatientRecordRepo recordRepo;
 
     @Override
     public ResponseObject save(Patient patient, List<MultipartFile> file) {
         try {
-            List<PatientFiles> files = new ArrayList<>();
-
-            for (var fileData : file) {
-                PatientFiles patientFile = new PatientFiles();
-                patientFile.setFilename(fileData.getOriginalFilename());
-                patientFile.setFile(compressImage(fileData.getBytes()));
-                files.add(patientFile);
-            }
-            patient.getPatientRecords().get(0).setFile(files);
+            patient.getPatientRecords().get(0).setFile(setPatientFiles(file));
             patientRepo.save(patient);
 
             return new ResponseObject(SUCCESS_STATUS, SAVE_SUCCESSFUL, null);
@@ -62,7 +57,7 @@ public class PatientServiceImpl implements IPatientService{
     }
 
     @Override
-    public ResponseObject update(Patient p) {
+    public ResponseObject update(Patient p, List<MultipartFile> file) {
         try {
             Optional<Patient> patient = patientRepo.findById(p.getId());
             if(patient.isEmpty()) {
@@ -77,7 +72,10 @@ public class PatientServiceImpl implements IPatientService{
             patient.get().setContact(p.getContact());
             patient.get().setStatus(p.getStatus());
             patient.get().setEmergency_contact(p.getEmergency_contact());
-            patient.get().setPatientRecords(p.getPatientRecords());
+            //patient.get().setPatientRecords(p.getPatientRecords());
+            //patient.get().getPatientRecords().get(0).setFile(setPatientFiles(file));
+            p.getPatientRecords().get(0).setFile(setPatientFiles(file));
+            recordRepo.save(p.getPatientRecords().get(0));
             patientRepo.save(patient.get());
             return new ResponseObject(SUCCESS_STATUS, UPDATE_MSG, null);
         }catch (Exception e) {
@@ -123,6 +121,19 @@ public class PatientServiceImpl implements IPatientService{
             e.printStackTrace();
             throw  new RuntimeException(e.getMessage());
         }
+    }
+
+    private List<PatientFiles> setPatientFiles(List<MultipartFile> file) throws IOException {
+        List<PatientFiles> files = new ArrayList<>();
+
+        for (var fileData : file) {
+            PatientFiles patientFile = new PatientFiles();
+            patientFile.setFilename(fileData.getOriginalFilename());
+            patientFile.setFile(compressImage(fileData.getBytes()));
+            files.add(patientFile);
+        }
+
+        return files;
     }
 
     private byte[] decompressImage(byte[] data) {

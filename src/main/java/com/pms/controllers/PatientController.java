@@ -32,9 +32,11 @@ public class PatientController {
         return patientService.delete(id);
     }
 
-    @PatchMapping()
-    public ResponseObject update(@RequestBody Patient patient) {
-        return patientService.update(patient);
+    @Transactional
+    @PatchMapping(produces = {MediaType.ALL_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public ResponseObject update(@RequestParam("patient") String patientStr, @RequestParam("file") List<MultipartFile> files) throws JsonProcessingException {
+        Patient patient = mapper.readValue(patientStr, Patient.class);
+        return patientService.update(patient, files);
     }
 
     @GetMapping()

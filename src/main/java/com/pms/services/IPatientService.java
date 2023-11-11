@@ -11,7 +11,7 @@ import java.util.List;
 public interface IPatientService {
     public ResponseObject save(Patient patient, List<MultipartFile> file);
     public ResponseObject delete(String id);
-    public ResponseObject update(Patient patient);
+    public ResponseObject update(Patient patient, List<MultipartFile> file);
     public ResponseObject getAllPatients();
     public ResponseObject getDetails(String id);
 
