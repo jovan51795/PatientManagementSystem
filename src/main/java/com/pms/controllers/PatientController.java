@@ -16,6 +16,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/private/patient")
+@CrossOrigin(origins = "http://localhost:4200")
 public class PatientController {
     private final IPatientService patientService;
     private final ObjectMapper mapper;
@@ -33,10 +34,15 @@ public class PatientController {
     }
 
     @Transactional
-    @PatchMapping(produces = {MediaType.ALL_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public ResponseObject update(@RequestParam("patient") String patientStr, @RequestParam("file") List<MultipartFile> files) throws JsonProcessingException {
+    @PatchMapping(produces = {MediaType.ALL_VALUE})
+    public ResponseObject update(@RequestParam("patient") String patientStr, @RequestParam(value = "file" ) List<MultipartFile> files) throws JsonProcessingException {
+        System.out.println("hello");
         Patient patient = mapper.readValue(patientStr, Patient.class);
         return patientService.update(patient, files);
+    }
+    @PatchMapping(value = "/no-file")
+    public ResponseObject update(@RequestBody Patient patient) throws JsonProcessingException {
+        return patientService.update(patient, null);
     }
 
     @GetMapping()

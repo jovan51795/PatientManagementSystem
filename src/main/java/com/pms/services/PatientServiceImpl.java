@@ -2,6 +2,7 @@ package com.pms.services;
 
 import com.pms.models.Patient;
 import com.pms.models.PatientFiles;
+import com.pms.models.PatientRecord;
 import com.pms.repo.PatientRecordRepo;
 import com.pms.repo.PatientRepo;
 import com.pms.response.ResponseObject;
@@ -74,9 +75,28 @@ public class PatientServiceImpl implements IPatientService{
             patient.get().setEmergency_contact(p.getEmergency_contact());
             //patient.get().setPatientRecords(p.getPatientRecords());
             //patient.get().getPatientRecords().get(0).setFile(setPatientFiles(file));
-            p.getPatientRecords().get(0).setFile(setPatientFiles(file));
-            recordRepo.save(p.getPatientRecords().get(0));
             patientRepo.save(patient.get());
+            PatientRecord patientRecord = p.getPatientRecords().get(0);
+
+            if (file != null) {
+                patientRecord.setFile(setPatientFiles(file));
+                //setPatientFiles(patientRecord.getFile() ,file);
+            } else {
+                PatientRecord pRec = p.getPatientRecords().get(0);
+                patientRecord.setId(pRec.getId());
+                patientRecord.setPrescriptions(pRec.getPrescriptions());
+                patientRecord.setDiagnose(pRec.getDiagnose());
+                patientRecord.setNotes(pRec.getNotes());
+                pRec.getFile().forEach(f -> {
+                    f.setFile(compressImage(f.getFile()));
+                });
+                patientRecord.setFile(pRec.getFile());
+                patientRecord.setDate(pRec.getDate());
+
+            }
+
+            recordRepo.save(patientRecord);
+
             return new ResponseObject(SUCCESS_STATUS, UPDATE_MSG, null);
         }catch (Exception e) {
             e.printStackTrace();
@@ -125,6 +145,18 @@ public class PatientServiceImpl implements IPatientService{
 
     private List<PatientFiles> setPatientFiles(List<MultipartFile> file) throws IOException {
         List<PatientFiles> files = new ArrayList<>();
+
+        for (var fileData : file) {
+            PatientFiles patientFile = new PatientFiles();
+            patientFile.setFilename(fileData.getOriginalFilename());
+            patientFile.setFile(compressImage(fileData.getBytes()));
+            files.add(patientFile);
+        }
+
+        return files;
+    }
+
+    private List<PatientFiles> setPatientFiles(List<PatientFiles> files,List<MultipartFile> file) throws IOException {
 
         for (var fileData : file) {
             PatientFiles patientFile = new PatientFiles();
