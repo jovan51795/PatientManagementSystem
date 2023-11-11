@@ -59,4 +59,9 @@ public class PatientController {
     public ResponseObject getDetails(@PathVariable("id") String id) {
         return patientService.getDetails(id);
     }
+
+    @GetMapping("/status-report")
+    public ResponseObject getPatientStatusReport() {
+        return patientService.getPatientStatusReport();
+    }
 }

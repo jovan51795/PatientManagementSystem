@@ -17,4 +17,6 @@ public interface IPatientService {
     public ResponseObject getAllPatients();
     public ResponseObject getDetails(String id);
 
+    public ResponseObject getPatientStatusReport();
+
 }

@@ -201,6 +201,16 @@ public class PatientServiceImpl implements IPatientService{
         }
     }
 
+    @Override
+    public ResponseObject getPatientStatusReport() {
+        try {
+            return new ResponseObject(SUCCESS_STATUS, null, patientRepo.getPatientReport());
+        }catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
     private List<PatientFiles> setPatientFiles(List<MultipartFile> file) throws IOException {
         List<PatientFiles> files = new ArrayList<>();
 
