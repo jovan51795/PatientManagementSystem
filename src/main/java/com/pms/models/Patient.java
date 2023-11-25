@@ -43,4 +43,6 @@ public class Patient {
     @JoinColumn(name = "patient_records")
     private List<PatientRecord> patientRecords;
 
+    private String created_date = DateGenerator.generate();
+
 }

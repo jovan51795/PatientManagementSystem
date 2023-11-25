@@ -1,5 +1,8 @@
 package com.pms.services;
 
+import com.pms.dto.ChartData;
+import com.pms.dto.Dashboard;
+import com.pms.dto.DataSets;
 import com.pms.models.Patient;
 import com.pms.models.PatientFiles;
 import com.pms.models.PatientRecord;
@@ -16,6 +19,8 @@ import javax.sql.rowset.serial.SerialBlob;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.Blob;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -50,7 +55,7 @@ public class PatientServiceImpl implements IPatientService{
         patient.setMiddle_name(encrypt(patient.getMiddle_name()));
         patient.setLast_name(encrypt(patient.getLast_name()));
         patient.setBirthday(encrypt(patient.getBirthday()));
-        patient.setGender(encrypt(patient.getGender()));
+        patient.setGender(patient.getGender());
         patient.setPlace_of_birth(encrypt(patient.getPlace_of_birth()));
         patient.setContact(encrypt(patient.getContact()));
         patient.setEmergency_contact(encrypt(patient.getEmergency_contact()));
@@ -61,7 +66,7 @@ public class PatientServiceImpl implements IPatientService{
         patient.setMiddle_name(decrypt(patient.getMiddle_name()));
         patient.setLast_name(decrypt(patient.getLast_name()));
         patient.setBirthday(decrypt(patient.getBirthday()));
-        patient.setGender(decrypt(patient.getGender()));
+        patient.setGender(patient.getGender());
         patient.setPlace_of_birth(decrypt(patient.getPlace_of_birth()));
         patient.setContact(decrypt(patient.getContact()));
         patient.setEmergency_contact(decrypt(patient.getEmergency_contact()));
@@ -204,11 +209,92 @@ public class PatientServiceImpl implements IPatientService{
     @Override
     public ResponseObject getPatientStatusReport() {
         try {
-            return new ResponseObject(SUCCESS_STATUS, null, patientRepo.getPatientReport());
+            Dashboard dashboard = new Dashboard(
+                    patientRepo.getPatientReport(),
+                    generateChartData()
+            );
+            return new ResponseObject(SUCCESS_STATUS, null, dashboard);
+
         }catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage());
         }
+    }
+
+    public List<String> getMonths() {
+        LocalDateTime now = LocalDateTime.now();
+        String date = now.format(DateTimeFormatter.ofPattern("yyyy"));
+        var result = patientRepo.getChartReport(date);
+        List<String> labels = new ArrayList<>();
+        result.forEach(c -> {
+            labels.add(c.getMonths().substring(8));
+        });
+        return labels;
+    }
+
+    public DataSets getDataSets() {
+        var result = patientRepo.getChartReportDataSets();
+        List<Integer> data = new ArrayList<>();
+        result.forEach(c-> {
+            data.add(c.getCount());
+        });
+        String label = "Monthly patient report";
+
+        //General Datasets
+        DataSets dataSets = new DataSets(
+                label,
+                data,
+                false,
+                "documentStyle.getPropertyValue('--green-600')",
+                "documentStyle.getPropertyValue('--green-600')",
+                0.4
+
+        );
+
+        return dataSets;
+    }
+
+    public void getDataSetsByGender(List<DataSets> sets) {
+        String[] gender = {"Male", "Female", "Other"};
+        String[] color = {"--blue-300", "--pink-300", "--purple-400"};
+        for ( int i = 0; i < gender.length; i++) {
+            var result = patientRepo.getChartReportDataSetsByGender(gender[i]);
+            List<Integer> data = new ArrayList<>();
+            result.forEach(c-> {
+                data.add(c.getCount());
+            });
+            String label = "";
+            if("Male".equals(gender[i])) {
+                label = "Male monthly report";
+            } else if("Female".equals(gender[i])) {
+                label = "Female monthly report";
+            } else {
+                label = "Non-binary monthly report";
+            }
+            DataSets dataSets = dataSets = new DataSets(
+                    label,
+                    data,
+                    false,
+                    "documentStyle.getPropertyValue("+ "'" + color[i] +"'" +")",
+                    "documentStyle.getPropertyValue("+ "'" + color[i] +"'" +")",
+                    0.4
+
+            );
+
+            sets.add(dataSets);
+        }
+    }
+    public ChartData generateChartData() {
+        List<DataSets> dataSets = new ArrayList<>();
+        getDataSetsByGender(dataSets);
+        dataSets.add(getDataSets());
+//        getDataSetsByGender(dataSets);
+        ChartData chartData = new ChartData(
+                getMonths(),
+                dataSets
+        );
+
+        return chartData;
     }
 
     private List<PatientFiles> setPatientFiles(List<MultipartFile> file) throws IOException {
