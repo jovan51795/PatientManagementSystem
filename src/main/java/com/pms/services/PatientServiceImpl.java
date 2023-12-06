@@ -265,11 +265,11 @@ public class PatientServiceImpl implements IPatientService{
             });
             String label = "";
             if("Male".equals(gender[i])) {
-                label = "Male monthly report";
+                label = "Male";
             } else if("Female".equals(gender[i])) {
-                label = "Female monthly report";
+                label = "Female";
             } else {
-                label = "Non-binary monthly report";
+                label = "Non-binary";
             }
             DataSets dataSets = dataSets = new DataSets(
                     label,
@@ -287,7 +287,7 @@ public class PatientServiceImpl implements IPatientService{
     public ChartData generateChartData() {
         List<DataSets> dataSets = new ArrayList<>();
         getDataSetsByGender(dataSets);
-        dataSets.add(getDataSets());
+//        dataSets.add(getDataSets());
 //        getDataSetsByGender(dataSets);
         ChartData chartData = new ChartData(
                 getMonths(),
