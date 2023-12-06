@@ -9,6 +9,7 @@ import com.pms.models.PatientRecord;
 import com.pms.repo.PatientRecordRepo;
 import com.pms.repo.PatientRepo;
 import com.pms.response.ResponseObject;
+import com.pms.spel.DistinctMonth;
 import com.pms.util.AESEncryption;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -254,15 +255,28 @@ public class PatientServiceImpl implements IPatientService{
         return dataSets;
     }
 
-    public void getDataSetsByGender(List<DataSets> sets) {
+    public void getDataSetsByGender(List<DataSets> sets, List<DistinctMonth> months) {
         String[] gender = {"Male", "Female", "Other"};
         String[] color = {"--blue-300", "--pink-300", "--purple-400"};
         for ( int i = 0; i < gender.length; i++) {
-            var result = patientRepo.getChartReportDataSetsByGender(gender[i]);
+
             List<Integer> data = new ArrayList<>();
-            result.forEach(c-> {
-                data.add(c.getCount());
-            });
+//            result.forEach(c-> {
+//                data.add(c.getCount());
+//            });
+            System.out.println(gender[i]);
+            for(int j = 0; j < months.size(); j++) {
+                System.out.println(months.get(j).getDate());
+                var result = patientRepo.getChartReportDataSetsByGender(gender[i], months.get(j).getDate());
+                if(result.isEmpty()) {
+
+//                    System.out.println("empty" + months.get(j).getCreated_date());
+                    data.add(0);
+                }else {
+//                    System.out.println("not empty" + months.get(j).getCreated_date());
+                    data.add(result.get().getCount());
+                }
+            }
             String label = "";
             if("Male".equals(gender[i])) {
                 label = "Male";
@@ -286,7 +300,8 @@ public class PatientServiceImpl implements IPatientService{
     }
     public ChartData generateChartData() {
         List<DataSets> dataSets = new ArrayList<>();
-        getDataSetsByGender(dataSets);
+        List<DistinctMonth> months = getDistinctMonths();
+        getDataSetsByGender(dataSets, months);
 //        dataSets.add(getDataSets());
 //        getDataSetsByGender(dataSets);
         ChartData chartData = new ChartData(
@@ -295,6 +310,11 @@ public class PatientServiceImpl implements IPatientService{
         );
 
         return chartData;
+    }
+
+    public List<DistinctMonth> getDistinctMonths() {
+        var result =  patientRepo.distinctMonths().get();
+        return result;
     }
 
     private List<PatientFiles> setPatientFiles(List<MultipartFile> file) throws IOException {

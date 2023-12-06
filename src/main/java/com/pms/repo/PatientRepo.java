@@ -1,6 +1,7 @@
 package com.pms.repo;
 
 import com.pms.models.Patient;
+import com.pms.spel.DistinctMonth;
 import com.pms.spel.IDataSets;
 import com.pms.spel.IMonthsSpel;
 import com.pms.spel.IPatientReportSpel;
@@ -28,8 +29,11 @@ public interface PatientRepo extends JpaRepository<Patient, String> {
     @Query(value ="SELECT COUNT(p) as count FROM Patient p WHERE p.active = true GROUP By p.created_date ORDER BY p.created_date ASC")
     List<IDataSets> getChartReportDataSets();
 
-    @Query(value ="SELECT COUNT(p) as count FROM Patient p WHERE p.active = true AND p.gender = :gender GROUP By p.created_date ORDER BY p.created_date ASC")
-    List<IDataSets> getChartReportDataSetsByGender(String gender);
+    @Query(value ="SELECT COUNT(p) as count FROM Patient p WHERE p.active = true AND p.created_date = :month AND p.gender = :gender GROUP By p.created_date ORDER BY p.created_date ASC")
+    Optional<IDataSets> getChartReportDataSetsByGender(String gender, String month);
+
+    @Query(value = "SELECT DISTINCT p.created_date as date FROM Patient p ORDER BY p.created_date ASC")
+    Optional<List<DistinctMonth>> distinctMonths();
 
 
 }
