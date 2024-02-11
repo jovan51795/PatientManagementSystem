@@ -94,6 +94,7 @@ public class PatientServiceImpl implements IPatientService{
 
     @Override
     public ResponseObject delete(String id) {
+        System.out.println(id + " this is the id");
         try {
             Optional<Patient> patient = patientRepo.findById(id);
             if(patient.isEmpty()) {
